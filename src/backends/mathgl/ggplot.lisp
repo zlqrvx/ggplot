@@ -53,24 +53,41 @@
            `(let* ((gr (mgl-create-graph 600 400))
                    (free-gr (lambda () (mgl-delete-graph gr))))
               (trivial-garbage:finalize gr free-gr)
-              (mgl-set-ranges gr
-                              ,(loop :for i
-                                       :across (ggplot::get-x aes)
-                                     :minimize i)
-                              ,(loop :for i
-                                       :across (ggplot::get-x aes)
-                                     :maximize i)
-                              ,(loop :for i
-                                       :across (ggplot::get-y aes)
-                                     :minimize i)
-                              ,(loop :for i
-                                       :across (ggplot::get-y aes)
-                                     :maximize i)
-                              0d0 0d0)
+              (mgl-set-origin gr 0d0 0d0 0d0)
+              ,(let ((pl-ty (ggplot::get-type (car geom))))
+                 (cond
+                   ((equal pl-ty 'ggplot::col)
+                    `(mgl-set-ranges gr
+                                     0d0
+                                     ,(coerce (length (ggplot::get-x aes))
+                                              'double-float)
+                                     0d0
+                                     ,(loop :for i
+                                              :across (ggplot::get-x aes)
+                                            :maximize i)
+                                     0d0 0d0))
+                   ((or (equal pl-ty 'ggplot::point)
+                        (equal pl-ty 'ggplot::line))
+                    `(mgl-set-ranges gr
+                                     ,(loop :for i
+                                              :across (ggplot::get-x aes)
+                                            :minimize i)
+                                     ,(loop :for i
+                                              :across (ggplot::get-x aes)
+                                            :maximize i)
+                                     ,(loop :for i
+                                              :across (ggplot::get-y aes)
+                                            :minimize i)
+                                     ,(loop :for i
+                                              :across (ggplot::get-y aes)
+                                            :maximize i)
+                                     0d0 0d0))))
               ,(if labs `(mgl-title gr ,(ggplot::get-title labs) "" -1d0))
               (mgl-axis gr "" "" "")
               ,@(loop :for g :in geom
-                      :collect
+                      :if (or (equal (ggplot::get-type g) 'ggplot::point)
+                              (equal (ggplot::get-type g) 'ggplot::line))
+                        :collect
                       `(mgl-plot-xy gr
                                     ,(mgl-backend-convert-data
                                       (ggplot::get-x aes))
@@ -82,11 +99,17 @@
                                                   (case (ggplot::get-type g)
                                                     (ggplot::line "r")
                                                     (ggplot::point " o")))
-                                    ""))
-              ;; (mgl-write-frame gr "test.png" "")
+                                    "")
+                      :if (equal (ggplot::get-type g) 'ggplot::col)
+                        :collect
+                      `(mgl-bars gr ,(mgl-backend-convert-data
+                                      (ggplot::get-y aes)) "")
+                      ) 
+
               gr)))
     (setq ggplot::*ggplot-last-plot*
-          (eval plot-commands)))
+          (float-features:with-float-traps-masked t
+            (eval plot-commands))))
   t)
 
 
@@ -97,5 +120,6 @@
 
 (defun ggsave (fname &key (plot ggplot::*ggplot-last-plot*))
   (declare (string fname))
-  (mgl-write-frame plot fname ""))
+  (float-features:with-float-traps-masked t
+    (mgl-write-frame plot fname "")))
 

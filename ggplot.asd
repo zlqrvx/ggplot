@@ -2,11 +2,14 @@
   :version "0.0.1"
   :author ""
   :license ""
-  :depends-on ("alexandria" "cffi" "trivial-garbage")
+  :depends-on ("alexandria" "cffi" "trivial-garbage" "float-features")
   :components ((:module "src/"
                 :components
                 ((:file "package")
                  (:file "ggplot")))
+               (:module "src/backends/gnuplot/"
+                :components
+                ((:file "ggplot")))
                (:module "src/backends/mathgl/"
                 :components
                 ((:file "wrappers")

@@ -5,8 +5,15 @@
    #:labs
    #:geom-point
    #:geom-line
+   #:geom-col
+   #:geom-bar
+   #:clear
    ))
 
+(defpackage ggplot.gnuplot
+  (:use :cl)
+  (:export
+   #:ggplot))
 
 (defpackage ggplot.mathgl
   (:use :cl)

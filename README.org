@@ -1,5 +1,52 @@
 * ggplot
+ggplot aims to replicate the plotting interface of the [[https://ggplot2.tidyverse.org/][ggplot2]] package in R.
+
+There are many different plotting interfaces in many different languages; some are object orientated like [[https://matplotlib.org][matplotlib]], some are more of a collection of useful functions like plotting in [[https://www.r-project.org/][base R]], then there are still others like the command based [[https://gnuplot.info/][gnuplot]]. The trouble with all of these different options is exactly that: too many options! With every different plotting package, you need to learn a completely different syntax that is often tied closely to the syntax of the language it is written in. This is where ggplot comes in. It is based on the book /The Grammar of Graphics/ which proposes a general scheme for specifing graphics in a language. Such a specification can serve as a universal language for plotting, allowing for a consistant user experience across plotting libraries.
+
+** Components
+ggplot for common lisp is broken into two parts: the front end interface and the backend graphics generation.
+*** Frontend
+The front end consists of a simple ggplot programming interface which is designed to closely resemble ggplot2 in R.
+
+*** Backends
+The actual generation of the graphics is done by one of the backends. The backend takes the ggplot definition from the frontend and produces a plot based on it.
+
+Currently there are two work-in-progress backends:
++ [[https://gnuplot.info/][gnuplot]] (recommended)
++ [[https://mathgl.sourceforge.net/][mathgl]] (experimental)
 
 ** Usage
+Create some data, for example:
+#+begin_src lisp :session :results none
+(defvar x (make-array 100 :element-type 'double-float :initial-element 1d0))
+(defvar y (make-array 100 :element-type 'double-float :initial-element 1d0))
+(loop :for i :below (length y)
+      :do
+         (setf (aref x i) (/ (coerce i 'double-float) 10))
+         (setf (aref y i) (* (aref x i) (sin (aref x i)))))
+#+end_src
+
+Now we can plot this data like so:
+#+begin_src lisp :session :results none
+(ggplot.gnuplot:ggplot
+ (ggplot:aes :x x :y y)
+ (ggplot:geom-line :color "green")
+ (ggplot:geom-point :color "blue")
+ (ggplot:geom-col :color "orange")
+ (ggplot:labs :title "A nice sine wave." :x "x-axis" :y "y-axis"))
+#+end_src
+
+Alternativly, we can set the data directly in the aes command:
+#+begin_src lisp :session :results none
+(ggplot.gnuplot:ggplot
+ (ggplot:aes :x '(1 3 2 5 3))
+ (ggplot:geom-col)
+ (ggplot:labs :title "Column plot"))
+#+end_src
 
 ** Installation
+*** Roswell installation
+You can install ggplot directly from github using the following roswell command.
+#+begin_src sh
+ros install zlqrvx/ggplot
+#+end_src

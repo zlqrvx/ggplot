@@ -6,9 +6,6 @@
   (t (:default "libmgl")))
 
 
-;; (cffi:use-foreign-library libmgl)
-
-
 (cffi:defcfun "mgl_create_graph"
     :pointer (width :int) (height :int))
 
@@ -30,8 +27,14 @@
 (cffi:defcfun "mgl_plot_xy"
     :void (gr :pointer) (x :pointer) (y :pointer) (pen :string) (opt :string))
 
+(cffi:defcfun "mgl_bars"
+    :void (gr :pointer) (y :pointer) (pen :string))
+
 (cffi:defcfun "mgl_axis"
     :void (gr :pointer) (dir :string) (stl :string) (opt :string))
+
+(cffi:defcfun "mgl_set_origin"
+    :void (gr :pointer) (x :double) (y :double) (z :double))
 
 (cffi:defcfun "mgl_set_ranges"
     :void (gr :pointer)
