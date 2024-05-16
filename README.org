@@ -36,6 +36,8 @@ Now we can plot this data like so:
  (ggplot:labs :title "A nice sine wave." :x "x-axis" :y "y-axis"))
 #+end_src
 
+[[./img/line-plot-example.svg]]
+
 Alternativly, we can set the data directly in the aes command:
 #+begin_src lisp :session :results none
 (ggplot.gnuplot:ggplot
@@ -43,6 +45,8 @@ Alternativly, we can set the data directly in the aes command:
  (ggplot:geom-col)
  (ggplot:labs :title "Column plot"))
 #+end_src
+
+[[./img/column-plot-example.svg]]
 
 ** Installation
 *** Roswell installation
