@@ -7,6 +7,7 @@
    #:geom-line
    #:geom-col
    #:geom-bar
+   #:geom-boxplot
    #:clear
    ))
 

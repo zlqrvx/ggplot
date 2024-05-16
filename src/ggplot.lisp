@@ -55,6 +55,13 @@
                  :color color
                  ))
 
+(defun geom-boxplot (&key (aes nil) color)
+  (make-instance 'geometry
+                 :aes aes
+                 :type 'boxplot
+                 :color color
+                 ))
+
 (defun aes (&key (x nil) (y nil))
   (make-instance 'aesthetic :x x :y y))
 

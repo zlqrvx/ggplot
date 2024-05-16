@@ -53,10 +53,11 @@
 (defun tag-data (ggp)
   (let ((aes (ggplot::get-aes ggp)))
     (and aes
-         (setf (ggplot::get-x aes)
-               (tag+process-data (ggplot::get-x aes)))
-         (setf (ggplot::get-y aes)
-               (tag+process-data (ggplot::get-y aes)))))
+         (progn
+           (setf (ggplot::get-x aes)
+                 (tag+process-data (ggplot::get-x aes)))
+           (setf (ggplot::get-y aes)
+                 (tag+process-data (ggplot::get-y aes))))))
   (let ((geoms (ggplot::get-geom ggp)))
     (loop :for g :in geoms
           :if (ggplot::get-aes g)
@@ -76,10 +77,10 @@
          :if l
            :collect l)
    (loop :for g :in geom-lst
-         :if (ggplot::get-aes g)
+         :if (and (ggplot::get-aes g) (ggplot::get-x (ggplot::get-aes g)))
            :collecting (ggplot::get-x (ggplot::get-aes g))
-           :and
-             :collecting (ggplot::get-y (ggplot::get-aes g)))))
+         :if (and (ggplot::get-aes g) (ggplot::get-y (ggplot::get-aes g)))
+           :collecting (ggplot::get-y (ggplot::get-aes g)))))
 
 
 (defun ggplot-backend-gnuplot (ggp)
@@ -100,10 +101,6 @@
         (write-script gnuplot-script ggp data-file)
         (uiop:launch-program
          `("/usr/bin/gnuplot" "--persist" ,(format nil "~A" script-file)))))
-    ;; This is a hack! gnuplot needs the data files to stay around while it is loading, but I don't know how to tell on the lisp side when gnuplot has finished loading.
-    ;; (sleep 1)
-    ;; (uiop:delete-file-if-exists script-file)
-    ;; (uiop:delete-file-if-exists data-file)
     (setq ggplot::*ggplot-last-plot*
           (make-ggplot-gnuplot
            :script-file script-file
@@ -121,7 +118,7 @@
    (write-if-exists "set xlabel '~A'~%" (ggplot::get-x labs))
    (write-if-exists "set ylabel '~A'~%" (ggplot::get-y labs))))
 
-(defun select-columns (g aes)
+(defun select-columns (g aes &key (type nil) (plot-num 0))
   (let ((x
           (if (and (ggplot::get-aes g) (ggplot::get-x (ggplot::get-aes g)))
               (tagged-data-tag (ggplot::get-x (ggplot::get-aes g)))
@@ -136,7 +133,9 @@
       ((and x (not y))
        (format nil "\"~A\"" x))
       ((and y (not x))
-       (format nil "\"~A\"" y)))))
+       (if (string= type "boxplot")
+           (format nil "(~A):\"~A\"" plot-num y)
+           (format nil "\"~A\"" y))))))
 
 (defun select-type (g)
   (cond
@@ -145,7 +144,9 @@
     ((equal (ggplot::get-type g) 'ggplot::point)
      "points")
     ((equal (ggplot::get-type g) 'ggplot::col)
-     "boxes")))
+     "boxes")
+    ((equal (ggplot::get-type g) 'ggplot::boxplot)
+     "boxplot")))
 
 (defun write-script (stream ggp data-file)
   (let* ((aes (ggplot::get-aes ggp))
@@ -153,10 +154,12 @@
          (labs (ggplot::get-labs ggp)))
     (and labs
          (format stream (collect-labels labs)))
+    (format stream "set border 2~%")
     (format stream "plot ")
     (unless geom
       (error "No geom provided, nothing to plot."))
     (loop :for g :in geom
+          :and i :from 0
           :collect
           (format
            stream
@@ -164,7 +167,7 @@
             'string
             (format nil " '~A' using ~A with ~A "
                     data-file
-                    (select-columns g aes)
+                    (select-columns g aes :type (select-type g) :plot-num i)
                     (select-type g))
             (write-if-exists "linecolor rgb '~A'" (ggplot::get-color g))
             ",")))))
