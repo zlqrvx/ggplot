@@ -155,6 +155,7 @@
     (and labs
          (format stream (collect-labels labs)))
     (format stream "set border 2~%")
+    (format stream "unset key~%")
     (format stream "plot ")
     (unless geom
       (error "No geom provided, nothing to plot."))

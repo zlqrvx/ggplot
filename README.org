@@ -33,7 +33,7 @@ Now we can plot this data like so:
  (ggplot:geom-line :color "green")
  (ggplot:geom-point :color "blue")
  (ggplot:geom-col :color "orange")
- (ggplot:labs :title "A nice sine wave." :x "x-axis" :y "y-axis"))
+ (ggplot:labs :title "Some function." :x "x-axis" :y "y-axis"))
 #+end_src
 
 [[./img/line-plot-example.svg]]
